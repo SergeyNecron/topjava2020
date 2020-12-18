@@ -20,6 +20,8 @@
 
     <!-- Choose profile from (hsqldb/ postgres) and (jdbc/ datajpa/ jpa) -->
 
+    <tx:annotation-driven/>
+
     <beans profile="hsqldb">
         <context:property-placeholder location="classpath:db/hsqldb.properties" system-properties-mode="OVERRIDE"/>
 
@@ -66,6 +68,35 @@
         <bean id="namedJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
             <constructor-arg ref="jdbcTemplate"/>
         </bean>
+
+        <bean id="transactionManager"
+              class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+            <property name="dataSource" ref="dataSource" />
+        </bean>
+    </beans>
+
+    <beans profile="heroku">
+        <context:property-placeholder location="classpath:/db/heroku.properties" system-properties-mode="OVERRIDE"/>
+
+        <bean class="java.net.URI" id="dbUrl">
+            <constructor-arg value="${DATABASE_URL}"/>
+        </bean>
+        <bean id="dataSource"
+              class="org.apache.tomcat.jdbc.pool.DataSource"
+              p:url="#{ 'jdbc:postgresql://' + @dbUrl.getHost() + @dbUrl.getPath() }"
+              p:username="#{ @dbUrl.getUserInfo().split(':')[0] }"
+              p:password="#{ @dbUrl.getUserInfo().split(':')[1] }"
+              p:driverClassName="org.postgresql.Driver"
+              p:validationQuery="SELECT 1"
+              p:maxActive="10"
+              p:minIdle="2"
+              p:maxWait="20000"
+              p:initialSize="2"
+              p:maxIdle="5"
+              p:testOnBorrow="true"
+              p:removeAbandoned="true"
+              p:testOnConnect="true"
+              p:testWhileIdle="true"/>
     </beans>
 
     <beans profile="jpa,datajpa">
@@ -86,6 +117,9 @@
                     <entry key="#{T(org.hibernate.cache.jcache.ConfigSettings).PROVIDER}" value="org.ehcache.jsr107.EhcacheCachingProvider"/>
                     <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_SECOND_LEVEL_CACHE}" value="true"/>
                     <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_QUERY_CACHE}" value="false"/> <!--default-->
+
+                    <entry key="javax.persistence.validation.group.pre-persist" value="ru.javawebinar.topjava.View$Persist"/>
+                    <entry key="javax.persistence.validation.group.pre-update" value="ru.javawebinar.topjava.View$Persist"/>
 <!--
                     <entry key="#{T(org.hibernate.cfg.AvailableSettings).HBM2DDL_SCRIPTS_ACTION}" value="drop-and-create"/>
                     <entry key="#{T(org.hibernate.cfg.AvailableSettings).HBM2DDL_SCRIPTS_CREATE_TARGET}" value="${TOPJAVA_ROOT}/config/ddl/create.ddl"/>
@@ -101,13 +135,9 @@
             </property>
         </bean>
 
-        <tx:annotation-driven/>
-
         <!-- Transaction manager for a single JPA EntityManagerFactory (alternative to JTA) -->
         <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"
               p:entityManagerFactory-ref="entityManagerFactory"/>
-
-        <bean class="ru.javawebinar.topjava.repository.JpaUtil"/>
     </beans>
 
     <beans profile="jpa">
