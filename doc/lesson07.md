@@ -34,7 +34,7 @@
 Для оптимизации можно указать Hibernate делать запрос без distinct: [15.16.2. Using DISTINCT with entity queries](https://docs.jboss.org/hibernate/orm/5.2/userguide/html_single/Hibernate_User_Guide.html#hql-distinct)
    - Бага [HINT_PASS_DISTINCT_THROUGH does not work if 'hibernate.use_sql_comments=true'](https://hibernate.atlassian.net/browse/HHH-13280). При `hibernate.use_sql_comments=false` все работает- в SELECT нет DISTINCT.
 
-- Тест `DataJpaUserServiceTest.testGetWithMeals()` не работает для admin (у админа 2 роли, и еда при JOIN дублируется). `DISTINCT` при нескольких JOIN не помогает, оставил в графе только `meals`.
+- Тест `DataJpaUserServiceTest.getWithMeals()` не работает для admin (у админа 2 роли, и еда при JOIN дублируется). `DISTINCT` при нескольких JOIN не помогает, оставил в графе только `meals`.
 
 #### Apply 7_06_HW6_optional_jdbc.patch
 > - в `JdbcUserRepositoryImpl.getAll()` собираю роли из `ResultSet` напрямую в `map`
@@ -122,7 +122,7 @@ GROUP BY u.id
 -  Дополнительно:
    - <a href="https://www.sghill.net/how-do-i-write-a-jackson-json-serializer-deserializer.html">Jackson JSON Serializer & Deserializer</a>
 
-### ![video](https://cloud.githubusercontent.com/assets/13649199/13672715/06dbc6ce-e6e7-11e5-81a9-04fbddb9e488.png) 8. [Тестирование REST контроллеров через JSONassert и Матчеры](https://drive.google.com/open?id=1oa3e0_tG57E71g6PW7_tfb3B61Qldctl)</a>
+### ![video](https://cloud.githubusercontent.com/assets/13649199/13672715/06dbc6ce-e6e7-11e5-81a9-04fbddb9e488.png) 8. [Тестирование REST контроллеров через JSONassert и Матчеры](https://drive.google.com/open?id=1oa3e0_tG57E71g6PW7_tfb3B61Qldctl)
 #### Apply 7_14_json_assert_tests.patch
 - [JSONassert](https://github.com/skyscreamer/JSONassert)
 - [Java Code Examples for ObjectMapper](https://www.programcreek.com/java-api-examples/index.php?api=com.fasterxml.jackson.databind.ObjectMapper)
@@ -133,9 +133,11 @@ GROUP BY u.id
 #### Apply 7_16_soapui_utf8_converter.patch
 - Инструменты тестирования REST:
   - <a href="http://www.soapui.org/">SoapUi</a>
-  - <a href="http://rus-linux.net/lib.php?name=/MyLDP/internet/curlrus.html">Написание HTTP-запросов с помощью Curl</a>
-(для Windows можно использовать Git Bash). Для работы с UTF-8 в Windows 10 нужны пляски с бубном: ["Язык и региональные стандарты" -> "Сопутствующие параметры" -> "Административные языковые параметры" -> "Изменить язык системы" -> галка "Бета-версия:Использовать Юникод (UTF-8) для поддержки языка во всем мире"](https://drive.google.com/open?id=1J1WquTv9wenJQ9ptMymXPYGnrvFzAV-L), перезагрузка.
-  - *[IDEA: Tools->HTTP Client->...](https://www.jetbrains.com/help/idea/rest-client-tool-window.html)*
+  - <a href="http://rus-linux.net/lib.php?name=/MyLDP/internet/curlrus.html">Написание HTTP-запросов с помощью Curl</a>.  
+    Для Windows 7 можно использовать Git Bash, с Windows 10 v1803 можно прямо из консоли. Возможны проблемы с UTF-8:
+    - [CURL doesn't encode UTF-8](https://stackoverflow.com/a/41384903/548473)
+    - [Нстройка кодировки в Windows](https://support.socialkit.ru/ru/knowledge-bases/4/articles/11110-preduprezhdenie-obnaruzhenyi-problemyi-svyazannyie-s-raspoznavaniem-russkih-simvolov)
+  - **[IDEA: Tools->HTTP Client->...](https://www.jetbrains.com/help/idea/rest-client-tool-window.html)**
   - <a href="https://www.getpostman.com/">Postman</a>
   - [Insomnia REST client](https://insomnia.rest/)
 
@@ -150,7 +152,8 @@ GROUP BY u.id
 
 В общем случае нужны и те и другие. REST обычно используют для отдельного UI например на React или Angular или для интеграции / мобильного приложения. У нас REST контроллеры используются только для тестирования. UI мы используем для нашего приложения на JSP шаблонах. Таких сайтов без богатой UI логики тоже немало. Например https://javaops.ru/ :)  
 Разница в запросах: 
-  - для UI используются только GET и POST, возвращают либо HTML, либо JSON для Ajax запросов
+  - для UI используются только GET и POST
+  - при создании-обновлении в UI мы принимаем данные из формы `application/x-www-form-urlencoded` (посмотрите вкладку `Network`, не в формате JSON)
   - для REST запросы GET, POST, PUT, DELETE, PATCH и возвращают только данные (обычно JSON)
   
  и в способе авторизации: 
@@ -190,7 +193,7 @@ hamcrest-all используется в проверках `RootControllerTest`
 ## ![hw](https://cloud.githubusercontent.com/assets/13649199/13672719/09593080-e6e7-11e5-81d1-5cb629c438ca.png) Домашнее задание HW07
 
 - 1: Добавить тесты контроллеров:
-  - 1.1 `RootControllerTest.testMeals` для `meals.jsp`
+  - 1.1 `RootControllerTest.getMeals` для `meals.jsp`
   - 1.2 Сделать `ResourceControllerTest` для `style.css` (проверить `status` и `ContentType`)
 - 2: Реализовать `MealRestController` и протестировать его через `MealRestControllerTest`
   - 2.1 следите, чтобы url в тестах совпадал с параметрами в методе контроллера. Можно добавить логирование `<logger name="org.springframework.web" level="debug"/>` для проверки маршрутизации.
@@ -214,4 +217,4 @@ hamcrest-all используется в проверках `RootControllerTest`
 - 5: При проблемах с собственным форматтером убедитесь, что в конфигурации `<mvc:annotation-driven...` не дублируется
 - 6: **Проверьте выполение ВСЕХ тестов через maven**. В случае проблем проверьте, что не портите константу из `MealTestData`
 - 7: `@Autowired` в тестах нужно делать в том месте, где класс будет использоваться. Общий принцип: не размазывать код по классам, объявление переменных держать как можно ближе к ее использованию, группировать (не смешивать) код с разной функциональностью.
-- 8: Попробуйте в `RootControllerTest.testMeals` сделать сравнение через `model().attribute("meals", expectedValue)`. Учтите, что вывод результатов через `toString` к сравнению отношения не имеет
+- 8: Попробуйте в `RootControllerTest.getMeals` сделать сравнение через `model().attribute("meals", expectedValue)`. Учтите, что вывод результатов через `toString` к сравнению отношения не имеет
